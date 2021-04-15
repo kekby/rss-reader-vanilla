@@ -11,7 +11,7 @@ export default () => {
     // eslint-disable-next-line max-len
     // { url: string, title: string, description: string, posts: Array<{ id: number, title: string, description: string}> }
     rssFeeds: [],
-    error: null,
+    message: null,
   };
 
   const form = document.querySelector('form.rss-form');
@@ -22,25 +22,41 @@ export default () => {
     e.preventDefault();
     const data = new FormData(e.target);
     const value = data.get('url');
+
     try {
       validate(watchedState, value);
-
-      watchedState.rssUrl = value;
-      watchedState.status = 'fetching';
-      watchedState.error = '';
-
-      axios.get(`https://hexlet-allorigins.herokuapp.com/get?url=${value}`)
-        .then((res) => parse(res.data.contents))
-        .then((rssData) => {
-          watchedState.status = 'rss-filled';
-          watchedState.rssFeeds = [...watchedState.rssFeeds, {
-            ...rssData,
-            url: value,
-          }];
-        });
     } catch (err) {
       watchedState.status = 'error';
-      watchedState.error = err.message;
+      watchedState.message = err.message;
     }
+
+    watchedState.rssUrl = value;
+    watchedState.status = 'fetching';
+    watchedState.message = '';
+
+    axios.get(`https://hexlet-allorigins.herokuapp.com/get?url=${value}`)
+      .catch((err) => {
+        watchedState.message = 'Ошибка сети';
+        watchedState.status = 'error';
+        throw new Error(err);
+      })
+      .then((res) => {
+        try {
+          return parse(res.data.contents);
+        } catch (err) {
+          watchedState.message = 'Ресурс не содержит валидный RSS';
+          watchedState.status = 'error';
+          throw new Error(err);
+        }
+      })
+      .then((rssData) => {
+        form.elements.url.value = '';
+        watchedState.status = 'rss-filled';
+        watchedState.message = 'RSS успешно загружен';
+        watchedState.rssFeeds = [...watchedState.rssFeeds, {
+          ...rssData,
+          url: value,
+        }];
+      });
   });
 };
