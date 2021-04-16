@@ -1,5 +1,4 @@
 import i18next from 'i18next';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/js/dist/modal';
 import 'jquery';
 import watcher from './watcher';
