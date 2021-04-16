@@ -1,5 +1,4 @@
 import i18next from 'i18next';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/js/dist/modal';
 import 'jquery';
 import watcher from './watcher';
@@ -57,6 +56,9 @@ const run = () => {
       watchedState.message = '';
 
       getRss(value)
+        .catch(() => {
+          throw new Error('errors.network');
+        })
         .then((res) => parse(res.data.contents))
         .then((rssData) => {
           form.elements.url.value = '';
@@ -73,12 +75,7 @@ const run = () => {
           }
         })
         .catch((err) => {
-          if (err.message === 'Network Error') {
-            watchedState.message = 'errors.network';
-          } else {
-            watchedState.message = err.message;
-          }
-
+          watchedState.message = err.message;
           watchedState.status = 'error';
         });
     } catch (err) {

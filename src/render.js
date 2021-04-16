@@ -100,8 +100,10 @@ const render = (state) => {
 
   if (status === 'fetching') {
     submitButton.setAttribute('disabled', true);
+    input.setAttribute('readonly', true);
   } else {
     submitButton.removeAttribute('disabled');
+    input.removeAttribute('readonly');
   }
 
   if (status === 'rss-filled') {
