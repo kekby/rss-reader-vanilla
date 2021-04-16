@@ -3,7 +3,7 @@ import i18next from 'i18next';
 const createMessageEl = (status, message) => {
   const div = document.createElement('div');
   div.className = `feedback ${status === 'error' ? 'text-danger' : 'text-success'}`;
-  div.textContent = message;
+  div.textContent = i18next.t(message);
   return div;
 };
 

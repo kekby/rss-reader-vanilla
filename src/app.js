@@ -30,7 +30,7 @@ const run = () => {
       .then((rssData) => {
         form.elements.url.value = '';
         watchedState.status = 'rss-filled';
-        watchedState.message = i18next.t('rssFilled');
+        watchedState.message = 'rssFilled';
         watchedState.rssFeeds = [...watchedState.rssFeeds, {
           ...rssData,
           url: value,
@@ -38,7 +38,7 @@ const run = () => {
       })
       .catch((err) => {
         if (err.message === 'Network Error') {
-          watchedState.message = i18next.t('errors.network');
+          watchedState.message = 'errors.network';
         } else {
           watchedState.message = err.message;
         }

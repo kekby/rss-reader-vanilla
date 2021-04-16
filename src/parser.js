@@ -1,5 +1,3 @@
-import i18next from 'i18next';
-
 const extractContent = (el, fields) => fields.map((field) => el.querySelector(field).textContent);
 
 const parse = (xml) => {
@@ -26,7 +24,7 @@ const parse = (xml) => {
       posts,
     };
   } catch (err) {
-    throw new Error(i18next.t('errors.rssInvalid'));
+    throw new Error('errors.rssInvalid');
   }
 };
 
