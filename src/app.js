@@ -1,10 +1,15 @@
-import axios from 'axios';
 import i18next from 'i18next';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/js/dist/modal';
+import 'jquery';
 import watcher from './watcher';
 import parse from './parser';
 import validate from './validate';
 import translations from './translations';
+import { getRss } from './api';
+import { findAddedPosts } from './utils';
+
+const FEED_UPDATE_INTERVAL = 5000;
 
 const run = () => {
   const state = {
@@ -14,37 +19,29 @@ const run = () => {
     // { url: string, title: string, description: string, posts: Array<{ id: number, title: string, description: string}> }
     rssFeeds: [],
     message: null,
+    realtime: false,
+    readed: [],
   };
 
   const form = document.querySelector('form.rss-form');
 
   const watchedState = watcher(state);
 
-  const getRss = (value) => {
-    watchedState.rssUrl = value;
-    watchedState.status = 'fetching';
-    watchedState.message = '';
+  const runRefreshInterval = () => {
+    setTimeout(() => {
+      const { rssFeeds } = watchedState;
 
-    axios.get(`https://hexlet-allorigins.herokuapp.com/get?url=${value}`)
-      .then((res) => parse(res.data.contents))
-      .then((rssData) => {
-        form.elements.url.value = '';
-        watchedState.status = 'rss-filled';
-        watchedState.message = 'rssFilled';
-        watchedState.rssFeeds = [...watchedState.rssFeeds, {
-          ...rssData,
-          url: value,
-        }];
-      })
-      .catch((err) => {
-        if (err.message === 'Network Error') {
-          watchedState.message = 'errors.network';
-        } else {
-          watchedState.message = err.message;
-        }
+      const getUpdatedFeeds = rssFeeds
+        .map((feed) => getRss(feed.url)
+          .then((res) => parse(res.data.contents))
+          .then((parsedFeed) => findAddedPosts(feed, parsedFeed))
+          .then((newPosts) => ({ ...feed, posts: [...newPosts, ...feed.posts] })));
 
-        watchedState.status = 'error';
-      });
+      Promise.all(getUpdatedFeeds).then((results) => {
+        watchedState.realtime = true;
+        watchedState.rssFeeds = results;
+      }).finally(runRefreshInterval);
+    }, FEED_UPDATE_INTERVAL);
   };
 
   form.addEventListener('submit', (e) => {
@@ -54,7 +51,36 @@ const run = () => {
 
     try {
       validate(watchedState, value);
-      getRss(value);
+
+      watchedState.rssUrl = value;
+      watchedState.status = 'fetching';
+      watchedState.message = '';
+
+      getRss(value)
+        .then((res) => parse(res.data.contents))
+        .then((rssData) => {
+          form.elements.url.value = '';
+          watchedState.status = 'rss-filled';
+          watchedState.message = 'rssFilled';
+          watchedState.rssFeeds = [...watchedState.rssFeeds, {
+            ...rssData,
+            url: value,
+          }];
+        })
+        .then(() => {
+          if (!watchedState.realtime) {
+            runRefreshInterval();
+          }
+        })
+        .catch((err) => {
+          if (err.message === 'Network Error') {
+            watchedState.message = 'errors.network';
+          } else {
+            watchedState.message = err.message;
+          }
+
+          watchedState.status = 'error';
+        });
     } catch (err) {
       watchedState.status = 'error';
       watchedState.message = err.message;

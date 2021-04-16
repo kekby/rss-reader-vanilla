@@ -7,10 +7,23 @@ const createMessageEl = (status, message) => {
   return div;
 };
 
-const renderFeeds = (rssFeeds) => {
+const renderModal = (post) => {
+  const modalTitleEl = document.querySelector('.modal-title');
+  const modalDescriptionEl = document.querySelector('.modal-body');
+  const modalFullArticleLink = document.querySelector('.full-article');
+
+  modalTitleEl.textContent = post.title;
+  modalDescriptionEl.textContent = post.description;
+  modalFullArticleLink.href = post.link;
+};
+
+const renderFeeds = (state, onButtonClick) => {
+  const { rssFeeds, readed } = state;
+
   const container = document.querySelector('.feeds');
   const postsContainer = document.querySelector('.posts');
   container.innerHTML = '';
+  postsContainer.innerHTML = '';
 
   const feedTitle = document.createElement('h2');
   feedTitle.textContent = i18next.t('feeds');
@@ -35,26 +48,38 @@ const renderFeeds = (rssFeeds) => {
     postsContainer.appendChild(title);
   }
 
-  // <a href="https://ru.hexlet.io/courses/html-pug/lessons/iteration/theory_unit" class="font-weight-bold" data-id="2" target="_blank" rel="noopener noreferrer">Циклы / HTML: Препроцессор Pug</a>
-
   const postsList = document.createElement('ul');
   postsList.className = 'list-group mb-5';
   postsContainer.appendChild(postsList);
 
-  posts.forEach(({
-    link, title, id,
-  }) => {
+  posts.forEach((post) => {
+    const {
+      link, title, id,
+    } = post;
     const item = document.createElement('li');
     item.className = 'list-group-item d-flex justify-content-between align-items-start';
     item.innerHTML = `
-      <a href=${link} class="font-weight-bold" data-id=${id} target="_blank" rel="noopener noreferrer">${title}</a>
-      <button type="button" class="btn btn-primary btn-sm" data-id=${id}" data-toggle="modal" data-target="#modal">${i18next.t('viewPost')}</button>
+      <a href=${link} class=${readed.some((postId) => postId === id) ? 'font-weight-normal' : 'font-weight-bold'} data-id=${id} target="_blank" rel="noopener noreferrer">${title}</a>
+      <button type="button" class="btn btn-primary btn-sm" data-id=${id} data-toggle="modal" data-target="#modal">${i18next.t('viewPost')}</button>
     `;
     postsList.appendChild(item);
+
+    item.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        const { id: postId } = e.target.dataset;
+        if (postId) {
+          renderModal(post);
+          onButtonClick(postId);
+        }
+      }
+    });
   });
 };
 
-const render = ({ status, message, rssFeeds }) => {
+const render = (state) => {
+  const {
+    status, message, readed,
+  } = state;
   const input = document.querySelector('input[name="url"]');
   const submitButton = document.querySelector('button[type="submit"]');
   const formContainer = document.querySelector('.mx-auto');
@@ -80,7 +105,11 @@ const render = ({ status, message, rssFeeds }) => {
   }
 
   if (status === 'rss-filled') {
-    renderFeeds(rssFeeds);
+    const onButtonClick = (id) => {
+      readed.push(id);
+      render(state);
+    };
+    renderFeeds(state, onButtonClick);
   }
 };
 
