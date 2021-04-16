@@ -5,6 +5,7 @@
   "scripts": {
     "test": "jest --colors"
   },
+  "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nohardcode/frontend-project-lvl3.git"
