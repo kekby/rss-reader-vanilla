@@ -1,3 +1,5 @@
+import i18next from 'i18next';
+
 const createMessageEl = (status, message) => {
   const div = document.createElement('div');
   div.className = `feedback ${status === 'error' ? 'text-danger' : 'text-success'}`;
@@ -11,7 +13,7 @@ const renderFeeds = (rssFeeds) => {
   container.innerHTML = '';
 
   const feedTitle = document.createElement('h2');
-  feedTitle.textContent = 'Фиды';
+  feedTitle.textContent = i18next.t('feeds');
   container.appendChild(feedTitle);
 
   const list = document.createElement('ul');
@@ -29,7 +31,7 @@ const renderFeeds = (rssFeeds) => {
 
   if (posts.length > 0) {
     const title = document.createElement('h2');
-    title.textContent = 'Посты';
+    title.textContent = i18next.t('posts');
     postsContainer.appendChild(title);
   }
 
@@ -46,7 +48,7 @@ const renderFeeds = (rssFeeds) => {
     item.className = 'list-group-item d-flex justify-content-between align-items-start';
     item.innerHTML = `
       <a href=${link} class="font-weight-bold" data-id=${id} target="_blank" rel="noopener noreferrer">${title}</a>
-      <button type="button" class="btn btn-primary btn-sm" data-id=${id}" data-toggle="modal" data-target="#modal">Просмотр</button>
+      <button type="button" class="btn btn-primary btn-sm" data-id=${id}" data-toggle="modal" data-target="#modal">${i18next.t('viewPost')}</button>
     `;
     postsList.appendChild(item);
   });
@@ -79,7 +81,6 @@ const render = ({ status, message, rssFeeds }) => {
 
   if (status === 'rss-filled') {
     renderFeeds(rssFeeds);
-    // const
   }
 };
 
